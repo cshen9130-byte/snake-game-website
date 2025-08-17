@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greedy Snake Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Welcome to Greedy Snake!</h1>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+    </div>
+    <div id="scoreBoard">
+        <p id="score">Score: 0</p>
+        <button id="restartButton">Restart</button>
+    </div>
+    <div id="loginForm">
+        <h2>Login</h2>
+        <form id="login">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
+    </div>
+    <div id="signupForm" style="display: none;">
+        <h2>Sign Up</h2>
+        <form id="signup">
+            <input type="text" id="newUsername" placeholder="Username" required>
+            <input type="password" id="newPassword" placeholder="Password" required>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="#" id="loginLink">Login</a></p>
+    </div>
+    <script src="js/game.js"></script>
+</body>
+</html>

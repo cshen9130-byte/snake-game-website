@@ -1,0 +1,16 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+#gameCanvas {
+    background-color: #f0f0f0;
+}
+#scoreBoard {
+    margin-top: 10px;
+}
+#loginForm, #signupForm {
+    margin-top: 20px;
+}
+#gameContainer {
+    margin-top: 20px;
+}
