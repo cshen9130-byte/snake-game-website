@@ -3,32 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snake Game with Login</title>
-<link rel="stylesheet" href="style.css">
+<title>Greedy Snake Game</title>
 <style>
-/* Modal styles */
+/* General styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom, #1e3c72, #2a5298);
+  color: #fff;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+h1 {
+  margin-top: 30px;
+  font-size: 2em;
+}
+
+/* Game container */
+#gameContainer {
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}
+#gameCanvas {
+  background-color: #000;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+
+/* Scoreboard */
+#scoreBoard {
+  margin-top: 10px;
+  font-size: 1.2em;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #ff6b6b;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+button:hover {
+  background-color: #ff4b4b;
+}
+
+/* Modal */
 .modal {
-  display: none; /* hidden by default */
+  display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 10;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 300px;
+  background: #fff;
+  color: #333;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 350px;
   text-align: center;
+  position: relative;
+}
+.modal-content input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 .close {
-  color: #aaa;
-  float: right;
+  position: absolute;
+  top: 10px;
+  right: 15px;
   font-size: 24px;
   cursor: pointer;
 }
@@ -36,13 +99,13 @@
 </head>
 <body>
 
-<h1>Welcome to Greedy Snake!</h1>
+<h1>Greedy Snake Game</h1>
+
 <div id="gameContainer">
     <canvas id="gameCanvas" width="400" height="400"></canvas>
 </div>
-<div id="scoreBoard">
-    Score: <span id="score">0</span>
-</div>
+
+<div id="scoreBoard">Score: <span id="score">0</span></div>
 
 <!-- Buttons to open modals -->
 <button id="openSignup">Sign Up</button>
@@ -53,8 +116,8 @@
   <div class="modal-content">
     <span class="close" id="closeSignup">&times;</span>
     <h2>Sign Up</h2>
-    <input type="text" id="newUsername" placeholder="Username" required><br><br>
-    <input type="password" id="newPassword" placeholder="Password" required><br><br>
+    <input type="text" id="newUsername" placeholder="Username" required><br>
+    <input type="password" id="newPassword" placeholder="Password" required><br>
     <button id="signupBtn">Sign Up</button>
   </div>
 </div>
@@ -64,73 +127,75 @@
   <div class="modal-content">
     <span class="close" id="closeLogin">&times;</span>
     <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" required><br><br>
-    <input type="password" id="password" placeholder="Password" required><br><br>
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
     <button id="loginBtn">Login</button>
   </div>
 </div>
 
 <script>
-const API_URL = "https://snake-game-website.onrender.com"; // your backend
+document.addEventListener("DOMContentLoaded", () => {
+    const API_URL = "https://snake-game-website.onrender.com"; // deployed backend
 
-// Modal elements
-const signupModal = document.getElementById("signupModal");
-const loginModal = document.getElementById("loginModal");
-const openSignup = document.getElementById("openSignup");
-const openLogin = document.getElementById("openLogin");
-const closeSignup = document.getElementById("closeSignup");
-const closeLogin = document.getElementById("closeLogin");
+    // Modal elements
+    const signupModal = document.getElementById("signupModal");
+    const loginModal = document.getElementById("loginModal");
+    const openSignup = document.getElementById("openSignup");
+    const openLogin = document.getElementById("openLogin");
+    const closeSignup = document.getElementById("closeSignup");
+    const closeLogin = document.getElementById("closeLogin");
 
-// Open modals
-openSignup.onclick = () => signupModal.style.display = "block";
-openLogin.onclick = () => loginModal.style.display = "block";
+    // Open modals
+    openSignup.onclick = () => signupModal.style.display = "flex";
+    openLogin.onclick = () => loginModal.style.display = "flex";
 
-// Close modals
-closeSignup.onclick = () => signupModal.style.display = "none";
-closeLogin.onclick = () => loginModal.style.display = "none";
+    // Close modals
+    closeSignup.onclick = () => signupModal.style.display = "none";
+    closeLogin.onclick = () => loginModal.style.display = "none";
 
-// Close if click outside modal
-window.onclick = (event) => {
-  if(event.target === signupModal) signupModal.style.display = "none";
-  if(event.target === loginModal) loginModal.style.display = "none";
-};
+    // Close if click outside modal
+    window.onclick = (event) => {
+      if(event.target === signupModal) signupModal.style.display = "none";
+      if(event.target === loginModal) loginModal.style.display = "none";
+    };
 
-// Signup
-document.getElementById("signupBtn").addEventListener("click", async () => {
-  const username = document.getElementById("newUsername").value;
-  const password = document.getElementById("newPassword").value;
-  try {
-    const res = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({username, password})
+    // Sign Up
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+        const username = document.getElementById("newUsername").value;
+        const password = document.getElementById("newPassword").value;
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({username, password})
+            });
+            const text = await res.text();
+            alert(text);
+            signupModal.style.display = "none";
+        } catch(err) {
+            console.error(err);
+            alert("Error signing up");
+        }
     });
-    const text = await res.text();
-    alert(text);
-    signupModal.style.display = "none";
-  } catch(err) {
-    console.error(err);
-    alert("Error signing up");
-  }
-});
 
-// Login
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({username, password})
+    // Login
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            alert(data.username ? `Welcome, ${data.username}!` : "Login failed");
+            loginModal.style.display = "none";
+        } catch(err) {
+            console.error(err);
+            alert("Error logging in");
+        }
     });
-    const data = await res.json();
-    alert(data.username ? `Welcome, ${data.username}!` : "Login failed");
-    loginModal.style.display = "none";
-  } catch(err) {
-    console.error(err);
-    alert("Error logging in");
-  }
 });
 </script>
 
