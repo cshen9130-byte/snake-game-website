@@ -134,6 +134,12 @@ button:hover {
 </div>
 
 <script>
+const API_URL = "";  // blank means same origin
+
+fetch(`${API_URL}/register`, { ... });
+fetch(`${API_URL}/login`, { ... });
+
+  
 document.addEventListener("DOMContentLoaded", () => {
     const API_URL = "https://snake-game-website.onrender.com"; // deployed backend
 
