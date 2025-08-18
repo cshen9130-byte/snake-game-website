@@ -4,68 +4,94 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-app.use(express.json());  // This will parse JSON request bodies
+app.use(express.json());  // Parse JSON request bodies
 
-// Connect to MongoDB (replace with your MongoDB URI if needed)
-mongoose.connect('mongodb://localhost/snake-game', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected...'))
-  .catch((err) => console.log(err));
 
-// Define the user schema for MongoDB
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+    console.error("Error: MONGO_URI environment variable not set");
+    process.exit(1);
+}
+
+mongoose.connect(mongoUri)
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.error("MongoDB connection error:", err));
+
+
+// User schema
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true },
     password: { type: String, required: true },
     score: { type: Number, default: 0 }
 });
 
-// Create a model for the user schema
+// User model
 const User = mongoose.model('User', userSchema);
 
-// Register new user
+// Register endpoint
 app.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) return res.status(400).send('Missing username or password');
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user and save to the database
-    const newUser = new User({ username, password: hashedPassword });
-    await newUser.save();
-    res.status(201).send('User created');
-});
+        // Save new user
+        const newUser = new User({ username, password: hashedPassword });
+        await newUser.save();
 
-// Login user
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
-    // Find the user by username
-    const user = await User.findOne({ username });
-    if (!user || !await bcrypt.compare(password, user.password)) {
-        return res.status(400).send('Invalid credentials');
+        res.status(201).send('User created');
+    } catch (err) {
+        res.status(500).send('Error registering user');
     }
-
-    // Create a token for the user
-    const token = jwt.sign({ userId: user._id }, 'your_jwt_secret');
-    res.json({ token });
 });
 
-// Save the user's score
+// Login endpoint
+app.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            return res.status(400).send('Invalid credentials');
+        }
+
+        // Create JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your_jwt_secret', { expiresIn: '1d' });
+        res.json({ token, userId: user._id, username: user.username });
+    } catch (err) {
+        res.status(500).send('Error logging in');
+    }
+});
+
+// Save score endpoint
 app.post('/save-score', async (req, res) => {
-    const { userId, score } = req.body;
+    try {
+        const { userId, score } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).send('User not found');
 
-    // Find the user by ID and update the score
-    const user = await User.findById(userId);
-    user.score = score;
-    await user.save();
-    res.send('Score saved');
+        user.score = score;
+        await user.save();
+        res.send('Score saved');
+    } catch (err) {
+        res.status(500).send('Error saving score');
+    }
 });
 
-// Fetch the leaderboard
+// Leaderboard endpoint
 app.get('/leaderboard', async (req, res) => {
-    // Get the top 10 users based on score, sorted in descending order
-    const leaderboard = await User.find().sort({ score: -1 }).limit(10);
-    res.json(leaderboard);
+    try {
+        const leaderboard = await User.find().sort({ score: -1 }).limit(10);
+        res.json(leaderboard);
+    } catch (err) {
+        res.status(500).send('Error fetching leaderboard');
+    }
 });
 
-// Start the server on port 5000
-app.listen(5000, () => console.log('Server running on http://localhost:5000'));
+// Health check
+app.get('/', (req, res) => res.send('Snake Game Backend is running'));
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
