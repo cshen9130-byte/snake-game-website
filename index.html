@@ -1,78 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Snake Game with Login</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game with Login</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* Modal styles */
+.modal {
+  display: none; /* hidden by default */
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 300px;
+  text-align: center;
+}
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+</style>
 </head>
 <body>
-  <h1>Snake Game</h1>
 
-  <!-- Signup Form -->
-  <form id="signup">
-    <h2>Sign Up</h2>
-    <input type="text" id="newUsername" placeholder="Username" required />
-    <input type="password" id="newPassword" placeholder="Password" required />
-    <button type="submit">Sign Up</button>
-  </form>
-
-  <!-- Login Form -->
-  <form id="login">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button type="submit">Login</button>
-  </form>
-
-  <!-- Game Container -->
-  <div id="gameContainer">
+<h1>Welcome to Greedy Snake!</h1>
+<div id="gameContainer">
     <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div id="scoreBoard">Score: <span id="score">0</span></div>
+</div>
+<div id="scoreBoard">
+    Score: <span id="score">0</span>
+</div>
+
+<!-- Buttons to open modals -->
+<button id="openSignup">Sign Up</button>
+<button id="openLogin">Login</button>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeSignup">&times;</span>
+    <h2>Sign Up</h2>
+    <input type="text" id="newUsername" placeholder="Username" required><br><br>
+    <input type="password" id="newPassword" placeholder="Password" required><br><br>
+    <button id="signupBtn">Sign Up</button>
   </div>
+</div>
 
-  <script>
-    const API_URL = "https://snake-game-website.onrender.com";  // Your deployed backend URL
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeLogin">&times;</span>
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" required><br><br>
+    <input type="password" id="password" placeholder="Password" required><br><br>
+    <button id="loginBtn">Login</button>
+  </div>
+</div>
 
-    // Handle Sign Up
-    document.getElementById("signup").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("newUsername").value;
-      const password = document.getElementById("newPassword").value;
+<script>
+const API_URL = "https://snake-game-website.onrender.com"; // your backend
 
-      try {
-        const res = await fetch(`${API_URL}/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-        const text = await res.text();
-        alert(text);
-      } catch (err) {
-        console.error(err);
-        alert("Error signing up");
-      }
+// Modal elements
+const signupModal = document.getElementById("signupModal");
+const loginModal = document.getElementById("loginModal");
+const openSignup = document.getElementById("openSignup");
+const openLogin = document.getElementById("openLogin");
+const closeSignup = document.getElementById("closeSignup");
+const closeLogin = document.getElementById("closeLogin");
+
+// Open modals
+openSignup.onclick = () => signupModal.style.display = "block";
+openLogin.onclick = () => loginModal.style.display = "block";
+
+// Close modals
+closeSignup.onclick = () => signupModal.style.display = "none";
+closeLogin.onclick = () => loginModal.style.display = "none";
+
+// Close if click outside modal
+window.onclick = (event) => {
+  if(event.target === signupModal) signupModal.style.display = "none";
+  if(event.target === loginModal) loginModal.style.display = "none";
+};
+
+// Signup
+document.getElementById("signupBtn").addEventListener("click", async () => {
+  const username = document.getElementById("newUsername").value;
+  const password = document.getElementById("newPassword").value;
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username, password})
     });
+    const text = await res.text();
+    alert(text);
+    signupModal.style.display = "none";
+  } catch(err) {
+    console.error(err);
+    alert("Error signing up");
+  }
+});
 
-    // Handle Login
-    document.getElementById("login").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        const res = await fetch(`${API_URL}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        alert(data.username ? `Welcome, ${data.username}!` : "Login failed");
-      } catch (err) {
-        console.error(err);
-        alert("Error logging in");
-      }
+// Login
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username, password})
     });
-  </script>
+    const data = await res.json();
+    alert(data.username ? `Welcome, ${data.username}!` : "Login failed");
+    loginModal.style.display = "none";
+  } catch(err) {
+    console.error(err);
+    alert("Error logging in");
+  }
+});
+</script>
+
 </body>
 </html>
