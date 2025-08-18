@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+const path = require('path');
+
 // --- JWT Middleware ---
 const auth = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -99,6 +101,14 @@ app.get('/leaderboard', async (req, res) => {
     } catch {
         res.status(500).send('Error fetching leaderboard');
     }
+});
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Serve index.html on the root URL
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // Health check
