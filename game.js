@@ -50,3 +50,57 @@ document.addEventListener("keydown", (event) => {
 });
 
 setInterval(gameLoop, 100);
+
+document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const signupLink = document.getElementById("signupLink");
+    const loginLink = document.getElementById("loginLink");
+
+    // Toggle to sign up form
+    signupLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        loginForm.style.display = "none";
+        signupForm.style.display = "block";
+    });
+
+    // Toggle back to login form
+    loginLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        signupForm.style.display = "none";
+        loginForm.style.display = "block";
+    });
+
+    // Handle login submit
+    document.getElementById("login").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+    });
+
+    // Handle signup submit
+    document.getElementById("signup").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("newUsername").value;
+        const password = document.getElementById("newPassword").value;
+
+        const res = await fetch("/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+    });
+});
+
