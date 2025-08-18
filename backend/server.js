@@ -103,12 +103,12 @@ app.get('/leaderboard', async (req, res) => {
     }
 });
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Serve index.html on the root URL
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 // Health check
