@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const openLogin = document.getElementById("openLogin");
   const closeSignup = document.getElementById("closeSignup");
   const closeLogin = document.getElementById("closeLogin");
+  const startBtn = document.getElementById("startGameBtn");
+  const userInfoDiv = document.getElementById("userInfo");
 
   openSignup.onclick = () => (signupModal.style.display = "flex");
   openLogin.onclick = () => (loginModal.style.display = "flex");
@@ -25,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target === loginModal) loginModal.style.display = "none";
   };
 
+  // Signup
   document.getElementById("signupBtn").addEventListener("click", async () => {
     const newUsername = document.getElementById("newUsername").value;
     const newPassword = document.getElementById("newPassword").value;
@@ -35,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: newUsername, password: newPassword }),
       });
-
       const text = await res.text();
       alert(text);
       if (res.ok) signupModal.style.display = "none";
@@ -45,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Login
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const usernameInput = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -55,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: usernameInput, password }),
       });
-
       const data = await res.json();
 
       if (res.ok) {
@@ -65,8 +67,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.highScore = data.highScore;
         window.rank = data.rank;
 
-        alert(`Welcome, ${window.username}!\nHigh Score: ${window.highScore}\nRank: ${window.rank}`);
         loginModal.style.display = "none";
+
+        // Show info on page
+        userInfoDiv.innerHTML = `
+          Welcome, ${window.username}! 
+          High Score: ${window.highScore} 
+          Rank: ${window.rank}
+        `;
+
+        // Enable Start Game button
+        startBtn.disabled = false;
       } else {
         alert(data.message || "Invalid credentials");
       }
@@ -76,12 +87,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Start Game button
-  document.getElementById("startGameBtn").addEventListener("click", () => {
-    if (!window.token) {
-      alert("You must log in to play!");
-      return;
-    }
-    startGame(); // calls function from game.js
+  // Start game button
+  startBtn.disabled = true; // disabled until login
+  startBtn.addEventListener("click", () => {
+    startGame(); // function from game.js
   });
 });
+
