@@ -7,13 +7,11 @@ let score = 0;
 let gameInterval = null;
 let food = null;
 
-// Make sure these are set from script.js
-let token = window.token || null;
-let username = window.username || null;
 
-// Start game
+
+
 function startGame() {
-  if (!token) {
+  if (!window.token) {      // read token directly from window
     alert("You must log in to play!");
     return;
   }
@@ -22,6 +20,7 @@ function startGame() {
   if (gameInterval) clearInterval(gameInterval);
   gameInterval = setInterval(gameLoop, 100);
 }
+
 
 // Main game loop
 function gameLoop() {
