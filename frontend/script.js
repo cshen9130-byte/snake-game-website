@@ -1,3 +1,5 @@
+console.log("script.js loaded");
+
 const API = "https://snake-game-website.onrender.com"; // backend URL
 let token = null;
 let username = null;
