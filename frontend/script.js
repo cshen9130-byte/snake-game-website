@@ -1,61 +1,75 @@
-const API = "https://snake-game-website.onrender.com"; // your backend URL
+const API = "https://snake-game-website.onrender.com"; // backend URL
 let token = null;
 let username = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const loginForm = document.getElementById("loginForm");
-  const signupForm = document.getElementById("signupForm");
-  const signupLink = document.getElementById("signupLink");
-  const loginLink = document.getElementById("loginLink");
+  // Modals
+  const signupModal = document.getElementById("signupModal");
+  const loginModal = document.getElementById("loginModal");
+  const openSignup = document.getElementById("openSignup");
+  const openLogin = document.getElementById("openLogin");
+  const closeSignup = document.getElementById("closeSignup");
+  const closeLogin = document.getElementById("closeLogin");
 
-  // Toggle forms
-  signupLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    loginForm.style.display = "none";
-    signupForm.style.display = "block";
-  });
+  // Open modals
+  openSignup.onclick = () => signupModal.style.display = "flex";
+  openLogin.onclick = () => loginModal.style.display = "flex";
 
-  loginLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    signupForm.style.display = "none";
-    loginForm.style.display = "block";
-  });
+  // Close modals
+  closeSignup.onclick = () => signupModal.style.display = "none";
+  closeLogin.onclick = () => loginModal.style.display = "none";
 
-  // Handle login
-  document.getElementById("login").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const usernameInput = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    const res = await fetch(API + "/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: usernameInput, password })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      token = data.token;
-      username = data.username;
-      alert(`Welcome, ${username}!`);
-    } else {
-      alert(data.message);
-    }
-  });
+  // Close if clicking outside modal
+  window.onclick = (event) => {
+    if (event.target === signupModal) signupModal.style.display = "none";
+    if (event.target === loginModal) loginModal.style.display = "none";
+  };
 
   // Handle signup
-  document.getElementById("signup").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document.getElementById("signupBtn").addEventListener("click", async () => {
     const newUsername = document.getElementById("newUsername").value;
     const newPassword = document.getElementById("newPassword").value;
 
-    const res = await fetch(API + "/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: newUsername, password: newPassword })
-    });
+    try {
+      const res = await fetch(API + "/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: newUsername, password: newPassword })
+      });
 
-    const data = await res.json();
-    alert(data.message);
+      const text = await res.text();
+      alert(text);
+      signupModal.style.display = "none";
+    } catch (err) {
+      console.error(err);
+      alert("Error signing up");
+    }
+  });
+
+  // Handle login
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const usernameInput = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      const res = await fetch(API + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: usernameInput, password })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.username) {
+        token = data.token || null;
+        username = data.username;
+        alert(`Welcome, ${username}!`);
+        loginModal.style.display = "none";
+      } else {
+        alert(data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error logging in");
+    }
   });
 });
