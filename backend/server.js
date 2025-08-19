@@ -62,20 +62,47 @@ app.post('/register', async (req, res) => {
     }
 });
 
+
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        if (!user || !await bcrypt.compare(password, user.password)) {
+
+        if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(400).send('Invalid credentials');
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your_jwt_secret', { expiresIn: '1d' });
-        res.json({ token, userId: user._id, username: user.username });
-    } catch {
+        // Generate token
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET || 'your_jwt_secret',
+            { expiresIn: '1d' }
+        );
+
+        // Ensure highScore exists
+        if (user.highScore === undefined) {
+            user.highScore = 0;
+            await user.save();
+        }
+
+        // Calculate rank
+        const betterPlayers = await User.countDocuments({ highScore: { $gt: user.highScore } });
+        const rank = betterPlayers + 1; // Example: if 3 players have higher score, user is 4th
+
+        res.json({
+            token,
+            userId: user._id,
+            username: user.username,
+            highScore: user.highScore,
+            rank: rank
+        });
+    } catch (err) {
+        console.error(err);
         res.status(500).send('Error logging in');
     }
 });
+
+
 
 // --- Game routes ---
 app.post('/save-score', auth, async (req, res) => {
