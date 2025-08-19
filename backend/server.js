@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(cors()); // allow frontend requests
 
+// MongoDB connection
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     console.error("Error: MONGO_URI environment variable not set");
@@ -18,16 +20,14 @@ mongoose.connect(mongoUri)
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.error("MongoDB connection error:", err));
 
-// User schema
+// --- User schema ---
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    score: { type: Number, default: 0 }
+    highScore: { type: Number, default: 0 }
 });
 
 const User = mongoose.model('User', userSchema);
-
-const path = require('path');
 
 // --- JWT Middleware ---
 const auth = (req, res, next) => {
@@ -62,7 +62,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -72,29 +71,22 @@ app.post('/login', async (req, res) => {
             return res.status(400).send('Invalid credentials');
         }
 
-        // Generate token
         const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET || 'your_jwt_secret',
             { expiresIn: '1d' }
         );
 
-        // Ensure highScore exists
-        if (user.highScore === undefined) {
-            user.highScore = 0;
-            await user.save();
-        }
-
         // Calculate rank
         const betterPlayers = await User.countDocuments({ highScore: { $gt: user.highScore } });
-        const rank = betterPlayers + 1; // Example: if 3 players have higher score, user is 4th
+        const rank = betterPlayers + 1;
 
         res.json({
             token,
             userId: user._id,
             username: user.username,
             highScore: user.highScore,
-            rank: rank
+            rank
         });
     } catch (err) {
         console.error(err);
@@ -102,44 +94,51 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
-
 // --- Game routes ---
 app.post('/save-score', auth, async (req, res) => {
     try {
         const { score } = req.body;
+        if (typeof score !== 'number') return res.status(400).send('Invalid score');
+
         const user = await User.findById(req.user.userId);
         if (!user) return res.status(404).send('User not found');
 
-        if (score > user.score) {
-            user.score = score; // only save best score
+        // Update highScore if new score is higher
+        if (score > user.highScore) {
+            user.highScore = score;
             await user.save();
         }
-        res.send('Score saved');
+
+        // Calculate updated rank
+        const betterPlayers = await User.countDocuments({ highScore: { $gt: user.highScore } });
+        const rank = betterPlayers + 1;
+
+        res.json({ highScore: user.highScore, rank });
     } catch {
         res.status(500).send('Error saving score');
     }
 });
 
+// Leaderboard
 app.get('/leaderboard', async (req, res) => {
     try {
-        const leaderboard = await User.find({}, 'username score').sort({ score: -1 }).limit(10);
+        const leaderboard = await User.find({}, 'username highScore')
+            .sort({ highScore: -1 })
+            .limit(10);
         res.json(leaderboard);
     } catch {
         res.status(500).send('Error fetching leaderboard');
     }
 });
 
-
-// Serve static frontend files
+// Serve frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 // Health check
-app.get('/', (req, res) => res.send('Snake Game Backend is running'));
+app.get('/health', (req, res) => res.send('Snake Game Backend is running'));
 
 // Start server
 const PORT = process.env.PORT || 5000;
