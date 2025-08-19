@@ -7,8 +7,16 @@ let score = 0;
 let gameInterval = null;
 let food = null;
 
-// Start game when button is clicked
+// Make sure these are set from script.js
+let token = window.token || null;
+let username = window.username || null;
+
+// Start game
 function startGame() {
+  if (!token) {
+    alert("You must log in to play!");
+    return;
+  }
   resetGame();
   spawnFood();
   if (gameInterval) clearInterval(gameInterval);
@@ -33,12 +41,11 @@ function moveSnake() {
 
   snake.unshift(head);
 
-  // Check if snake eats food
   if (head.x === food.x && head.y === food.y) {
     score++;
     spawnFood();
   } else {
-    snake.pop(); // only remove tail if not eating
+    snake.pop();
   }
 }
 
@@ -58,18 +65,16 @@ function drawGame() {
     ctx.fillRect(food.x * 20, food.y * 20, 20, 20);
   }
 
-  // Update score
   document.getElementById("score").innerText = `Score: ${score}`;
 }
 
-// Spawn food randomly on grid
+// Spawn food randomly
 function spawnFood() {
   food = {
     x: Math.floor(Math.random() * (canvas.width / 20)),
     y: Math.floor(Math.random() * (canvas.height / 20))
   };
 
-  // Make sure food is not on the snake
   if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
     spawnFood();
   }
@@ -79,7 +84,6 @@ function spawnFood() {
 function checkCollision() {
   let head = snake[0];
 
-  // Hit wall
   if (
     head.x < 0 ||
     head.x >= canvas.width / 20 ||
@@ -89,7 +93,6 @@ function checkCollision() {
     gameOver();
   }
 
-  // Hit self
   for (let i = 1; i < snake.length; i++) {
     if (head.x === snake[i].x && head.y === snake[i].y) {
       gameOver();
@@ -97,18 +100,44 @@ function checkCollision() {
   }
 }
 
-// Game over handler
+// Game over
 function gameOver() {
   clearInterval(gameInterval);
-  alert("Game Over!");
+  alert(`Game Over! Your score: ${score}`);
+  sendScoreToBackend(score);
 }
 
-// Reset game state
+// Reset game
 function resetGame() {
   snake = [{ x: 10, y: 10 }];
   direction = "RIGHT";
   score = 0;
   food = null;
+}
+
+// Send score to backend
+async function sendScoreToBackend(score) {
+  if (!token) return;
+
+  try {
+    const res = await fetch("https://snake-game-website.onrender.com/score", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ score })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(`High Score: ${data.highScore}\nRank: ${data.rank}`);
+    } else {
+      console.error(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // Keyboard controls
