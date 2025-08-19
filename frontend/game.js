@@ -115,30 +115,34 @@ function resetGame() {
   food = null;
 }
 
+
 // Send score to backend
 async function sendScoreToBackend(score) {
-  if (!token) return;
+  if (!window.token) return;
 
   try {
-    const res = await fetch("https://snake-game-website.onrender.com/score", {
+    const res = await fetch("https://snake-game-website.onrender.com/save-score", { // fix endpoint
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${window.token}`,
       },
-      body: JSON.stringify({ score })
+      body: JSON.stringify({ score }),
     });
 
     const data = await res.json();
     if (res.ok) {
+      window.highScore = data.highScore;
+      window.rank = data.rank;
       alert(`High Score: ${data.highScore}\nRank: ${data.rank}`);
     } else {
-      console.error(data.message);
+      console.error(data.message || "Error saving score");
     }
   } catch (err) {
     console.error(err);
   }
 }
+
 
 // Keyboard controls
 document.addEventListener("keydown", (event) => {
