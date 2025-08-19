@@ -1,12 +1,13 @@
 console.log("script.js loaded");
 
 const API = "https://snake-game-website.onrender.com"; // backend URL
-let token = null;
-let username = null;
-let userId = null;
+window.token = null;
+window.username = null;
+window.userId = null;
+window.highScore = 0;
+window.rank = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Modals
   const signupModal = document.getElementById("signupModal");
   const loginModal = document.getElementById("loginModal");
   const openSignup = document.getElementById("openSignup");
@@ -14,21 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeSignup = document.getElementById("closeSignup");
   const closeLogin = document.getElementById("closeLogin");
 
-  // Open modals
   openSignup.onclick = () => (signupModal.style.display = "flex");
   openLogin.onclick = () => (loginModal.style.display = "flex");
-
-  // Close modals
   closeSignup.onclick = () => (signupModal.style.display = "none");
   closeLogin.onclick = () => (loginModal.style.display = "none");
 
-  // Close if clicking outside modal
   window.onclick = (event) => {
     if (event.target === signupModal) signupModal.style.display = "none";
     if (event.target === loginModal) loginModal.style.display = "none";
   };
 
-  // Handle signup
   document.getElementById("signupBtn").addEventListener("click", async () => {
     const newUsername = document.getElementById("newUsername").value;
     const newPassword = document.getElementById("newPassword").value;
@@ -49,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Handle login
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const usernameInput = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -64,15 +59,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (res.ok) {
-        token = data.token;
-        username = data.username;
-        userId = data.userId;
+        window.token = data.token;
+        window.username = data.username;
+        window.userId = data.userId;
+        window.highScore = data.highScore;
+        window.rank = data.rank;
 
-        alert(`Welcome, ${username}!`);
+        alert(`Welcome, ${window.username}!\nHigh Score: ${window.highScore}\nRank: ${window.rank}`);
         loginModal.style.display = "none";
-
-        console.log("Token:", token);
-        console.log("User ID:", userId);
       } else {
         alert(data.message || "Invalid credentials");
       }
@@ -80,5 +74,14 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
       alert("Error logging in");
     }
+  });
+
+  // Start Game button
+  document.getElementById("startGameBtn").addEventListener("click", () => {
+    if (!window.token) {
+      alert("You must log in to play!");
+      return;
+    }
+    startGame(); // calls function from game.js
   });
 });
