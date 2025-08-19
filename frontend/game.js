@@ -7,20 +7,22 @@ let score = 0;
 let gameInterval = null;
 let food = null;
 
-
-
-
+// Start game
 function startGame() {
-  if (!window.token) {      // read token directly from window
+  if (!window.token) {      
     alert("You must log in to play!");
     return;
   }
+
+  // Show game and scoreboard
+  document.getElementById("gameContainer").style.display = "block";
+  document.getElementById("scoreBoard").style.display = "block";
+
   resetGame();
   spawnFood();
   if (gameInterval) clearInterval(gameInterval);
   gameInterval = setInterval(gameLoop, 100);
 }
-
 
 // Main game loop
 function gameLoop() {
@@ -40,11 +42,12 @@ function moveSnake() {
 
   snake.unshift(head);
 
+  // Check if snake eats food
   if (head.x === food.x && head.y === food.y) {
     score++;
     spawnFood();
   } else {
-    snake.pop();
+    snake.pop(); // only remove tail if not eating
   }
 }
 
@@ -67,22 +70,21 @@ function drawGame() {
   document.getElementById("score").innerText = `Score: ${score}`;
 }
 
-// Spawn food randomly
+// Spawn food randomly, not on the snake
 function spawnFood() {
-  food = {
-    x: Math.floor(Math.random() * (canvas.width / 20)),
-    y: Math.floor(Math.random() * (canvas.height / 20))
-  };
-
-  if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
-    spawnFood();
-  }
+  do {
+    food = {
+      x: Math.floor(Math.random() * (canvas.width / 20)),
+      y: Math.floor(Math.random() * (canvas.height / 20))
+    };
+  } while (snake.some(segment => segment.x === food.x && segment.y === food.y));
 }
 
 // Check collisions
 function checkCollision() {
-  let head = snake[0];
+  const head = snake[0];
 
+  // Hit wall
   if (
     head.x < 0 ||
     head.x >= canvas.width / 20 ||
@@ -92,6 +94,7 @@ function checkCollision() {
     gameOver();
   }
 
+  // Hit self
   for (let i = 1; i < snake.length; i++) {
     if (head.x === snake[i].x && head.y === snake[i].y) {
       gameOver();
@@ -114,13 +117,12 @@ function resetGame() {
   food = null;
 }
 
-
 // Send score to backend
 async function sendScoreToBackend(score) {
   if (!window.token) return;
 
   try {
-    const res = await fetch("https://snake-game-website.onrender.com/save-score", { // fix endpoint
+    const res = await fetch("https://snake-game-website.onrender.com/save-score", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +135,16 @@ async function sendScoreToBackend(score) {
     if (res.ok) {
       window.highScore = data.highScore;
       window.rank = data.rank;
-      alert(`High Score: ${data.highScore}\nRank: ${data.rank}`);
+
+      // Update user info div
+      const userInfoDiv = document.getElementById("userInfo");
+      if (userInfoDiv) {
+        userInfoDiv.innerHTML = `
+          Welcome, ${window.username}! 
+          High Score: ${window.highScore} 
+          Rank: ${window.rank}
+        `;
+      }
     } else {
       console.error(data.message || "Error saving score");
     }
@@ -141,7 +152,6 @@ async function sendScoreToBackend(score) {
     console.error(err);
   }
 }
-
 
 // Keyboard controls
 document.addEventListener("keydown", (event) => {
