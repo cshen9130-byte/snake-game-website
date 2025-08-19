@@ -133,74 +133,7 @@ button:hover {
   </div>
 </div>
 
-<script>
 
-
-  
-document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = "https://snake-game-website.onrender.com"; // deployed backend
-
-    // Modal elements
-    const signupModal = document.getElementById("signupModal");
-    const loginModal = document.getElementById("loginModal");
-    const openSignup = document.getElementById("openSignup");
-    const openLogin = document.getElementById("openLogin");
-    const closeSignup = document.getElementById("closeSignup");
-    const closeLogin = document.getElementById("closeLogin");
-
-    // Open modals
-    openSignup.onclick = () => signupModal.style.display = "flex";
-    openLogin.onclick = () => loginModal.style.display = "flex";
-
-    // Close modals
-    closeSignup.onclick = () => signupModal.style.display = "none";
-    closeLogin.onclick = () => loginModal.style.display = "none";
-
-    // Close if click outside modal
-    window.onclick = (event) => {
-      if(event.target === signupModal) signupModal.style.display = "none";
-      if(event.target === loginModal) loginModal.style.display = "none";
-    };
-
-    // Sign Up
-    document.getElementById("signupBtn").addEventListener("click", async () => {
-        const username = document.getElementById("newUsername").value;
-        const password = document.getElementById("newPassword").value;
-        try {
-            const res = await fetch(`${API_URL}/register`, {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({username, password})
-            });
-            const text = await res.text();
-            alert(text);
-            signupModal.style.display = "none";
-        } catch(err) {
-            console.error(err);
-            alert("Error signing up");
-        }
-    });
-
-    // Login
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        try {
-            const res = await fetch(`${API_URL}/login`, {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({username, password})
-            });
-            const data = await res.json();
-            alert(data.username ? `Welcome, ${data.username}!` : "Login failed");
-            loginModal.style.display = "none";
-        } catch(err) {
-            console.error(err);
-            alert("Error logging in");
-        }
-    });
-});
-</script>
 
 </body>
 </html>
